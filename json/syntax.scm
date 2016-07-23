@@ -25,33 +25,36 @@
 
 ;;; Code:
 
-(define-module (json syntax)
-  #:use-module (ice-9 match)
-  #:export (json))
+(library (json syntax)
+  (export json)
+  (import (chezscheme))
 
-(define (list->hash-table lst)
-  (let loop ((table (make-hash-table))
-             (lst lst))
-    (match lst
-      (((key value) . rest)
-       (hash-set! table key value)
-       (loop table rest))
-      (() table))))
+  (define (list->hash-table lst)
+    (let loop ((table (make-hash-table))
+               (lst lst))
+      (if (not (null? lst))
+          (let* ([pair (car list)]
+                 [key (car pair)]
+                 [value (cdr pair)])
+            (hashtable-set! table key value)
+            (loop table (cdr list)))
+          table)))
 
-(define-syntax json
-  (syntax-rules (unquote unquote-splicing array object)
-    ((_ (unquote val))
-     val)
-    ((_ ((unquote-splicing val) . rest))
-     (append val (json rest)))
-    ((_ (array val . rest))
-     (cons (json val) (json rest)))
-    ((_ (object key+val ...))
-     (list->hash-table
-      (json (array key+val ...))))
-    ((_ (val . rest))
-     (cons (json val) (json rest)))
-    ((_ val)
-     (quote val))))
+  (define-syntax json
+    (syntax-rules (unquote unquote-splicing array object)
+      ((_ (unquote val))
+       val)
+      ((_ ((unquote-splicing val) . rest))
+       (append val (json rest)))
+      ((_ (array val . rest))
+       (cons (json val) (json rest)))
+      ((_ (object key+val ...))
+       (list->hash-table
+        (json (array key+val ...))))
+      ((_ (val . rest))
+       (cons (json val) (json rest)))
+      ((_ val)
+       (quote val))))
+  )
 
 ;;; (json syntax) ends here
