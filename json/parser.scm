@@ -252,14 +252,16 @@
         ((#\r) (string #\return))
         ((#\t) (string #\tab))
         ((#\u)
-         (let* ((utf1 (string (read-hex-digit parser)
+         (let* ((utf1 (format "~a~a"
+                              (read-hex-digit parser)
                               (read-hex-digit parser)))
-                (utf2 (string (read-hex-digit parser)
+                (utf2 (format "~a~a"
+                              (read-hex-digit parser)
                               (read-hex-digit parser)))
                 (vu8 (list (string->number utf1 16)
                            (string->number utf2 16)))
                 (utf (u8-list->bytevector vu8)))
-           (utf16->string utf)))
+           (utf16->string utf 'big)))
         (else #f))))
 
   (define (read-until-quote-or-slash parser)
