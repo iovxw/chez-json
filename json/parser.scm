@@ -231,9 +231,8 @@
           ch)))
 
   (define (expect-string parser expected)
-    (list->string
-     (map (lambda (ch) (expect parser ch))
-          (string->list expected))))
+    (for-all (lambda (ch) (expect parser ch))
+             (string->list expected)))
 
   (define (read-hex-digit parser)
     (let ((c (parser-read-char parser)))
