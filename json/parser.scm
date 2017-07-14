@@ -91,9 +91,9 @@
         ((#\, #\] #\}) s)
         ;; We might have the exponential part
         ((#\e #\E)
-         (let ((ch (parser-read-char parser)) ; current char
-               (sign (read-sign parser))
-               (digits (read-digits parser)))
+         (let* ((ch (parser-read-char parser)) ; current char
+                (sign (read-sign parser))
+                (digits (read-digits parser)))
            ;; If we don't have sign or digits, we have an invalid
            ;; number.
            (if (not (and (string-null? sign)
@@ -113,8 +113,8 @@
         ((#\, #\] #\}) s)
         ;; If we read . we might have a real number
         ((#\.)
-         (let ((ch (parser-read-char parser))
-               (digits (read-digits parser)))
+         (let* ((ch (parser-read-char parser))
+                (digits (read-digits parser)))
            ;; If we have digits, try to read the exponential part,
            ;; otherwise we have an invalid number.
            (cond
@@ -140,19 +140,22 @@
            (loop (parser-peek-char parser)
                  (string-append s (string ch)))))
         ((#\0)
-         (let ((ch (parser-read-char parser)))
+         (let* ((ch (parser-read-char parser))
+                (tail (or (read-real-part parser)
+                          (error 'json-invalid "json invalid" parser))))
            (string-append s
                           (string ch)
-                          (or (read-real-part parser)
-                              (error 'json-invalid "json invalid" parser)))))
+                          tail)))
         ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-         (let ((ch (parser-read-char parser)))
+         (let* ((ch (parser-read-char parser))
+                (digit (read-digits parser))
+                (tail  (or (read-real-part parser)
+                           (read-exp-part parser)
+                           (error 'json-invalid "json invalid" parser))))
            (string-append s
                           (string ch)
-                          (read-digits parser)
-                          (or (read-real-part parser)
-                              (read-exp-part parser)
-                              (error 'json-invalid "json invalid" parser)))))
+                          digit
+                          tail)))
         (else (error 'json-invalid "json invalid" parser)))))
 
   ;;
@@ -369,6 +372,6 @@
   ;  (call-with-input-string str (lambda (p) (json->scm p))))
 
   (define (json-string->scm str)
-    (with-input-from-string str json->scm))
-  )
+    (json->scm (open-input-string str))))
+
 ;;; (json parser) ends here
