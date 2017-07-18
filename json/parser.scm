@@ -180,7 +180,7 @@
 
   (define (read-object parser)
     (let loop ((c (parser-peek-char parser))
-               (pairs (make-hash-table)))
+               (pairs (make-hashtable equal-hash equal?)))
       (case c
         ;; Skip whitespaces
         ((#\tab #\vtab #\newline #\return #\space)
